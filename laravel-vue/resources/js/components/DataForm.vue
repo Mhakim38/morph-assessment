@@ -16,7 +16,7 @@
 
       <div class="mb-3">
         <label class="form-label">Price (per Item)</label>
-        <input v-model.number="form.price" type="number" step="1" class="form-control" placeholder="5" required>
+        <input v-model.number="form.price" type="number" step="0.01" class="form-control" placeholder="5.00" required>
       </div>
 
       <div class="mb-3">
@@ -98,13 +98,15 @@ function submitForm() {
       data: form,
       
       success: function(response) {
-        // Reload the table data from backend
-        fetchItems();
+
+        if (response.status === 'ok') {
+            alert('Form submitted successfully!');
+            fetchItems(); // Reload items after successful submission
+        } else {
+            alert('Error: ' + response.message);
+        }        
       },
-      error: function(xhr, status, error) {
-        console.error('Error submitting form:', error);
-        alert('Error submitting form. Please try again.');
-      },
+
       complete: function() {
         // Reset form fields after request completes (success or error)
         form.name = '';
