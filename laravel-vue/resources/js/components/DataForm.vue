@@ -45,6 +45,7 @@
 
 <script setup>
 import { reactive, ref } from 'vue'
+import $ from 'jquery'
 
 // Form state
 const form = reactive({
@@ -56,18 +57,50 @@ const form = reactive({
 // List of submitted items
 const items = ref([])
 
+const storeUrl = document.getElementById('app')?.dataset.storeUrl
+const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+
 // Submit handler
 function submitForm() {
-  items.value.push({
-    name: form.name,
-    amount: form.amount,
-    date: form.date
-  })
 
-  // Reset form
-  form.name = ''
-  form.amount = null
-  form.date = ''
+    $.ajax({
+      url: storeUrl,
+      method: 'POST', 
+      headers: {
+        'X-CSRF-TOKEN': csrf
+      },
+      data: form,
+      
+      success: function(response) {
+        items.value.push(response)
+      },
+      error: function(error) {
+        alert('Error submitting form. Please try again.')
+      },
+      complete: function() {
+        // Reset form fields after request completes (success or error)
+        form.name = ''
+        form.amount = null
+        form.date = ''
+      }
+    })
+}
+
+// Format currency (MYR example)
+function formatCurrency(value) {
+  return new Intl.NumberFormat('en-MY', { 
+    style: 'currency', 
+    currency: 'MYR' 
+  }).format(value);
+}
+
+// Format date (human-readable)
+function formatDate(value) {
+  return new Intl.DateTimeFormat('en-MY', { 
+    year: 'numeric', 
+    month: 'short', 
+    day: 'numeric' 
+  }).format(new Date(value));
 }
 
 </script>

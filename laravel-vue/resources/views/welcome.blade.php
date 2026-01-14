@@ -22,6 +22,6 @@
 
 </head>
 <body style="background-color: #031e53; color: white;" class="d-flex justify-content-center align-items-center min-vh-100">
-    <div id="app"></div>
+    <div id="app" data-store-url="{{ route('StoreItems') }}"></div>
 </body>
 </html>
