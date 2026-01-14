@@ -6,12 +6,17 @@
     <form @submit.prevent="submitForm" class="mb-4">
       <div class="mb-3">
         <label class="form-label">Item Name</label>
-        <input v-model="form.name" type="text" class="form-control" required>
+        <input v-model="form.name" type="text" class="form-control" placeholder="CS" required>
       </div>
 
       <div class="mb-3">
         <label class="form-label">Amount</label>
-        <input v-model.number="form.amount" type="number" step="0.01" class="form-control" required>
+        <input v-model.number="form.amount" type="number" step="1" class="form-control" placeholder="5" required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Price (per Item)</label>
+        <input v-model.number="form.price" type="number" step="1" class="form-control" placeholder="5" required>
       </div>
 
       <div class="mb-3">
@@ -29,14 +34,18 @@
         <tr>
           <th>Name</th>
           <th>Amount</th>
+          <th>Price (per Item)</th>
           <th>Date</th>
+          <!-- <th>Updated</th> -->
         </tr>
       </thead>
       <tbody>
         <tr v-for="(item, index) in items" :key="index">
           <td>{{ item.name }}</td>
-          <td>{{ formatCurrency(item.amount) }}</td>
-          <td>{{ formatDate(item.date) }}</td>
+          <td>{{ item.quantity }}</td>
+          <td>{{ formatCurrency(item.price_per_item) }}</td>
+          <td>{{ formatDate(item.created_at) }}</td>
+          <!-- <td>{{ formatDate(item.updated_at) }}</td> -->
         </tr>
       </tbody>
     </table>
@@ -44,13 +53,14 @@
 </template>
 
 <script setup>
-import { reactive, ref } from 'vue'
+import { reactive, ref, onMounted } from 'vue'
 import $ from 'jquery'
 
 // Form state
 const form = reactive({
   name: '',
   amount: null,
+  price: null,
   date: ''
 })
 
@@ -58,7 +68,23 @@ const form = reactive({
 const items = ref([])
 
 const storeUrl = document.getElementById('app')?.dataset.storeUrl
+const fetchUrl = document.getElementById('app')?.dataset.fetchUrl
 const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+
+// Fetch items from backend using jQuery AJAX
+function fetchItems() {
+  
+  $.ajax({
+    url: fetchUrl,
+    method: 'GET',
+    success: function(response) {
+      items.value = response;
+    },
+    error: function(xhr, status, error) {
+      console.error('Error fetching items:', error);
+    }
+  });
+}
 
 // Submit handler
 function submitForm() {
@@ -72,18 +98,21 @@ function submitForm() {
       data: form,
       
       success: function(response) {
-        items.value.push(response)
+        // Reload the table data from backend
+        fetchItems();
       },
-      error: function(error) {
-        alert('Error submitting form. Please try again.')
+      error: function(xhr, status, error) {
+        console.error('Error submitting form:', error);
+        alert('Error submitting form. Please try again.');
       },
       complete: function() {
         // Reset form fields after request completes (success or error)
-        form.name = ''
-        form.amount = null
-        form.date = ''
+        form.name = '';
+        form.amount = null;
+        form.price = null;
+        form.date = '';
       }
-    })
+    });
 }
 
 // Format currency (MYR example)
@@ -102,6 +131,11 @@ function formatDate(value) {
     day: 'numeric' 
   }).format(new Date(value));
 }
+
+// Load items when component mounts
+onMounted(() => {
+  fetchItems();
+});
 
 </script>
 

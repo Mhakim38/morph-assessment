@@ -7,4 +7,5 @@ Route::get('/', function () {
 });
 
 // Form Routing
-Route::post('/submit-form', [App\Http\Controllers\Controller::class, 'submitForm'])->name('StoreItems');
+Route::get('/items', [App\Http\Controllers\ItemController::class, 'index'])->name('FetchItems');
+Route::post('/submit-form', [App\Http\Controllers\ItemController::class, 'submitForm'])->name('StoreItems');
